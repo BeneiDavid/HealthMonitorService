@@ -1,0 +1,3 @@
+gap_seconds,cpu_level,mem_level,disk_level,duration_seconds
+10,medium,medium,none,20
+10,high,none,medium,20

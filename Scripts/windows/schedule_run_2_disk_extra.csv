@@ -1,0 +1,7 @@
+gap_seconds,resource,level,duration_seconds
+1800,disk,medium,90
+2700,disk,high,120
+3000,disk,medium,60
+3300,disk,very_high,90
+3300,cpu,high,90
+3300,memory,high,120

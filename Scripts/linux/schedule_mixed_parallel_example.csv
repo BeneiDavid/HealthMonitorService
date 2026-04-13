@@ -1,0 +1,7 @@
+gap_seconds,cpu_level,mem_level,disk_level,duration_seconds
+1800,medium,medium,none,120
+2700,high,none,medium,120
+3000,none,high,medium,120
+3300,high,high,medium,90
+3300,medium,medium,high,120
+3000,high,medium,medium,90

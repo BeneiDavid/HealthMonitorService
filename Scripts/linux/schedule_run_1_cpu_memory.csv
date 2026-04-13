@@ -1,0 +1,7 @@
+gap_seconds,resource,level,duration_seconds
+1800,cpu,medium,90
+2400,memory,medium,120
+2700,cpu,high,120
+3000,memory,high,150
+3300,cpu,very_high,90
+3600,memory,very_high,90

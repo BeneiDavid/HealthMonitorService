@@ -1,0 +1,31 @@
+2026-04-13T19:35:45Z,run_linux_01,mixed_block_start,schedule=./test_mixed.csv cpu_cores=12 total_mem_mb=15867 disk_free_mb=975546 disk_medium_mb=256 disk_high_mb=512 disk_very_high_mb=1024
+2026-04-13T19:35:45Z,run_linux_01,idle_period_start,duration=10s
+2026-04-13T19:35:55Z,run_linux_01,idle_period_stop,completed
+2026-04-13T19:35:55Z,run_linux_01,scenario_start,duration=20s cpu=medium workers=6 total_cores=12 memory=medium memory_mb=9520 total_mem_mb=15867
+2026-04-13T19:35:55Z,run_linux_01,stress_cpu_start,duration=20 workers=6
+2026-04-13T19:35:55Z,run_linux_01,stress_memory_start,duration=20 memory=9520MB
+2026-04-13T19:35:55Z,run_linux_01,scenario_stop,status=failed
+2026-04-13T19:36:45Z,run_linux_01,mixed_block_start,schedule=./test_mixed.csv cpu_cores=12 total_mem_mb=15867 disk_free_mb=975546 disk_medium_mb=256 disk_high_mb=512 disk_very_high_mb=1024
+2026-04-13T19:36:45Z,run_linux_01,idle_period_start,duration=10s
+2026-04-13T19:36:55Z,run_linux_01,idle_period_stop,completed
+2026-04-13T19:36:55Z,run_linux_01,scenario_start,duration=20s cpu=medium workers=6 total_cores=12 memory=medium memory_mb=9520 total_mem_mb=15867
+2026-04-13T19:36:55Z,run_linux_01,stress_cpu_start,duration=20 workers=6
+2026-04-13T19:36:55Z,run_linux_01,stress_memory_start,duration=20 memory=9520MB
+2026-04-13T19:37:15Z,run_linux_01,stress_cpu_stop,completed
+2026-04-13T19:37:25Z,run_linux_01,stress_memory_stop,completed
+2026-04-13T19:37:25Z,run_linux_01,scenario_stop,status=completed
+2026-04-13T19:37:25Z,run_linux_01,cooldown_start,duration=15s
+2026-04-13T19:37:40Z,run_linux_01,cooldown_stop,completed
+2026-04-13T19:37:40Z,run_linux_01,mixed_block_stop,schedule=./test_mixed.csv completed
+2026-04-13T19:47:39Z,run_linux_01,mixed_block_start,schedule=./test_mixed.csv cpu_cores=12 total_mem_mb=15867 disk_free_mb=975546 disk_medium_mb=256 disk_high_mb=512 disk_very_high_mb=1024
+2026-04-13T19:47:39Z,run_linux_01,idle_period_start,duration=10s
+2026-04-13T19:47:49Z,run_linux_01,idle_period_stop,completed
+2026-04-13T19:47:49Z,run_linux_01,scenario_start,duration=20s cpu=medium workers=6 total_cores=12 memory=medium memory_mb=9520 total_mem_mb=15867
+2026-04-13T19:47:49Z,run_linux_01,stress_memory_start,duration=20 memory=9520MB
+2026-04-13T19:47:49Z,run_linux_01,stress_cpu_start,duration=20 workers=6
+2026-04-13T19:48:09Z,run_linux_01,stress_cpu_stop,completed
+2026-04-13T19:48:16Z,run_linux_01,stress_memory_stop,completed
+2026-04-13T19:48:16Z,run_linux_01,scenario_stop,status=completed
+2026-04-13T19:48:16Z,run_linux_01,cooldown_start,duration=15s
+2026-04-13T19:48:31Z,run_linux_01,cooldown_stop,completed
+2026-04-13T19:48:31Z,run_linux_01,mixed_block_stop,schedule=./test_mixed.csv completed

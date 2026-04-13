@@ -1,0 +1,110 @@
+2026-04-13T19:12:05Z,run_win_01,mixed_block_start,schedule=.\mixed_test.csv cpu_cores=12 total_mem_mb=32506 disk_free_mb=58319 disk_medium_mb=256 disk_high_mb=512 disk_very_high_mb=1024
+2026-04-13T19:12:05Z,run_win_01,idle_period_start,duration=10s
+2026-04-13T19:12:15Z,run_win_01,idle_period_stop,completed
+2026-04-13T19:14:37Z,run_win_01,mixed_block_start,schedule=.\mixed_test.csv cpu_cores=12 total_mem_mb=32506 disk_free_mb=58318 disk_medium_mb=256 disk_high_mb=512 disk_very_high_mb=1024
+2026-04-13T19:14:37Z,run_win_01,idle_period_start,duration=10s
+2026-04-13T19:14:47Z,run_win_01,idle_period_stop,completed
+2026-04-13T19:17:40Z,run_win_01,mixed_block_start,schedule=.\mixed_test.csv cpu_cores=12 total_mem_mb=32506 disk_free_mb=58315 disk_medium_mb=256 disk_high_mb=512 disk_very_high_mb=1024
+2026-04-13T19:17:40Z,run_win_01,idle_period_start,duration=10s
+2026-04-13T19:17:50Z,run_win_01,idle_period_stop,completed
+2026-04-13T19:17:50Z,run_win_01,scenario_start,duration=20s cpu=medium workers=6 total_cores=12 memory=medium memory_mb=19503 total_mem_mb=32506
+2026-04-13T19:17:50Z,run_win_01,scenario_stop,status=failed
+2026-04-13T19:19:36Z,run_win_01,mixed_block_start,schedule=.\mixed_test.csv cpu_cores=12 total_mem_mb=32506 disk_free_mb=58314 disk_medium_mb=256 disk_high_mb=512 disk_very_high_mb=1024
+2026-04-13T19:19:36Z,run_win_01,idle_period_start,duration=10s
+2026-04-13T19:19:46Z,run_win_01,idle_period_stop,completed
+2026-04-13T19:19:46Z,run_win_01,scenario_start,duration=20s cpu=medium workers=6 total_cores=12 memory=medium memory_mb=19503 total_mem_mb=32506
+2026-04-13T19:19:47Z,run_win_01,scenario_stop,status=failed
+2026-04-13T19:21:38Z,run_win_01,mixed_block_start,schedule=.\mixed_test.csv cpu_cores=12 total_mem_mb=32506 disk_free_mb=58313 disk_medium_mb=256 disk_high_mb=512 disk_very_high_mb=1024
+2026-04-13T19:21:38Z,run_win_01,idle_period_start,duration=10s
+2026-04-13T19:21:49Z,run_win_01,idle_period_stop,completed
+2026-04-13T19:21:49Z,run_win_01,scenario_start,duration=20s cpu=medium workers=6 total_cores=12 memory=medium memory_mb=19503 total_mem_mb=32506
+2026-04-13T19:21:49Z,run_win_01,stress_cpu_start,duration=20 workers=6
+2026-04-13T19:21:49Z,run_win_01,stress_memory_start,duration=20 memory=19503MB
+2026-04-13T19:22:09Z,run_win_01,stress_cpu_stop,completed
+2026-04-13T19:22:10Z,run_win_01,stress_memory_stop,completed
+2026-04-13T19:22:10Z,run_win_01,scenario_stop,status=completed
+2026-04-13T19:22:10Z,run_win_01,cooldown_start,duration=15s
+2026-04-13T19:22:25Z,run_win_01,cooldown_stop,completed
+2026-04-13T19:22:25Z,run_win_01,idle_period_start,duration=10s
+2026-04-13T19:22:35Z,run_win_01,idle_period_stop,completed
+2026-04-13T19:22:35Z,run_win_01,scenario_start,duration=20s cpu=high workers=11 total_cores=12 disk=medium file_mb=256 disk_free_mb=58313
+2026-04-13T19:22:36Z,run_win_01,stress_cpu_start,duration=20 workers=11
+2026-04-13T19:22:36Z,run_win_01,stress_disk_start,duration=20 file=256MB
+2026-04-13T19:22:56Z,run_win_01,stress_cpu_stop,completed
+2026-04-13T19:22:56Z,run_win_01,stress_disk_stop,completed
+2026-04-13T19:22:56Z,run_win_01,scenario_stop,status=completed
+2026-04-13T19:22:56Z,run_win_01,cooldown_start,duration=15s
+2026-04-13T19:23:11Z,run_win_01,cooldown_stop,completed
+2026-04-13T19:23:11Z,run_win_01,mixed_block_stop,schedule=.\mixed_test.csv completed
+2026-04-13T19:28:33Z,run_win_01,mixed_block_start,schedule=.\mixed_test.csv cpu_cores=12 total_mem_mb=32506 disk_free_mb=54984 disk_medium_mb=256 disk_high_mb=512 disk_very_high_mb=1024
+2026-04-13T19:28:33Z,run_win_01,idle_period_start,duration=10s
+2026-04-13T19:28:43Z,run_win_01,idle_period_stop,completed
+2026-04-13T19:28:43Z,run_win_01,scenario_start,duration=20s cpu=medium workers=6 total_cores=12 memory=medium memory_mb=19503 total_mem_mb=32506
+2026-04-13T19:28:43Z,run_win_01,stress_cpu_start,duration=20 workers=6
+2026-04-13T19:28:43Z,run_win_01,stress_memory_start,duration=20 memory=19503MB
+2026-04-13T19:29:03Z,run_win_01,stress_cpu_stop,completed
+2026-04-13T19:29:04Z,run_win_01,stress_memory_stop,completed
+2026-04-13T19:29:04Z,run_win_01,scenario_stop,status=completed
+2026-04-13T19:29:04Z,run_win_01,cooldown_start,duration=15s
+2026-04-13T19:29:19Z,run_win_01,cooldown_stop,completed
+2026-04-13T19:29:19Z,run_win_01,idle_period_start,duration=10s
+2026-04-13T19:29:29Z,run_win_01,idle_period_stop,completed
+2026-04-13T19:29:29Z,run_win_01,scenario_start,duration=20s cpu=high workers=11 total_cores=12 disk=medium file_mb=256 disk_free_mb=54984
+2026-04-13T19:29:30Z,run_win_01,stress_cpu_start,duration=20 workers=11
+2026-04-13T19:29:30Z,run_win_01,stress_disk_start,duration=20 file=256MB
+2026-04-13T19:29:50Z,run_win_01,stress_cpu_stop,completed
+2026-04-13T19:29:52Z,run_win_01,stress_disk_stop,completed
+2026-04-13T19:29:52Z,run_win_01,scenario_stop,status=completed
+2026-04-13T19:29:52Z,run_win_01,cooldown_start,duration=15s
+2026-04-13T19:30:07Z,run_win_01,cooldown_stop,completed
+2026-04-13T19:30:07Z,run_win_01,mixed_block_stop,schedule=.\mixed_test.csv completed
+2026-04-13T19:50:50Z,run_win_01,mixed_block_start,schedule=.\mixed_test.csv cpu_cores=12 total_mem_mb=32506 disk_free_mb=52664 disk_medium_mb=256 disk_high_mb=512 disk_very_high_mb=1024
+2026-04-13T19:50:50Z,run_win_01,idle_period_start,duration=10s
+2026-04-13T19:51:00Z,run_win_01,idle_period_stop,completed
+2026-04-13T19:51:00Z,run_win_01,scenario_start,duration=20s cpu=medium workers=6 total_cores=12 memory=medium memory_mb=19503 total_mem_mb=32506
+2026-04-13T19:51:01Z,run_win_01,stress_cpu_start,duration=20 workers=6
+2026-04-13T19:51:01Z,run_win_01,stress_memory_start,duration=20 memory=19503MB
+2026-04-13T19:51:21Z,run_win_01,stress_cpu_stop,completed
+2026-04-13T19:51:22Z,run_win_01,stress_memory_stop,completed
+2026-04-13T19:51:22Z,run_win_01,scenario_stop,status=completed
+2026-04-13T19:51:22Z,run_win_01,cooldown_start,duration=15s
+2026-04-13T19:51:37Z,run_win_01,cooldown_stop,completed
+2026-04-13T19:51:37Z,run_win_01,idle_period_start,duration=10s
+2026-04-13T19:51:47Z,run_win_01,idle_period_stop,completed
+2026-04-13T19:51:47Z,run_win_01,scenario_start,duration=20s cpu=high workers=11 total_cores=12 disk=medium file_mb=256 disk_free_mb=52664
+2026-04-13T19:51:47Z,run_win_01,stress_cpu_start,duration=20 workers=11
+2026-04-13T19:51:47Z,run_win_01,stress_disk_start,duration=20 file=256MB
+2026-04-13T19:52:07Z,run_win_01,stress_cpu_stop,completed
+2026-04-13T19:52:09Z,run_win_01,stress_disk_stop,completed
+2026-04-13T19:52:09Z,run_win_01,scenario_stop,status=completed
+2026-04-13T19:52:09Z,run_win_01,cooldown_start,duration=15s
+2026-04-13T19:52:25Z,run_win_01,cooldown_stop,completed
+2026-04-13T19:52:25Z,run_win_01,mixed_block_stop,schedule=.\mixed_test.csv completed
+2026-04-13T19:54:15Z,run_win_01,block_start,schedule=.\test.csv cpu_cores=12 total_mem_mb=32506 disk_free_mb=50420 disk_medium_mb=256 disk_high_mb=512 disk_very_high_mb=1024
+2026-04-13T19:54:15Z,run_win_01,idle_period_start,duration=10s
+2026-04-13T19:54:25Z,run_win_01,idle_period_stop,completed
+2026-04-13T19:54:25Z,run_win_01,scenario_start,resource=memory level=medium duration=40s memory_mb=19503 total_mem_mb=32506
+2026-04-13T19:54:25Z,run_win_01,stress_memory_start,duration=40 memory=19503MB
+2026-04-13T19:55:06Z,run_win_01,stress_memory_stop,completed
+2026-04-13T19:55:06Z,run_win_01,scenario_stop,resource=memory level=medium completed
+2026-04-13T19:55:06Z,run_win_01,cooldown_start,duration=15s
+2026-04-13T19:55:21Z,run_win_01,cooldown_stop,completed
+2026-04-13T19:55:21Z,run_win_01,idle_period_start,duration=10s
+2026-04-13T19:55:31Z,run_win_01,idle_period_stop,completed
+2026-04-13T19:55:31Z,run_win_01,scenario_start,resource=memory level=high duration=40s memory_mb=24379 total_mem_mb=32506
+2026-04-13T19:55:31Z,run_win_01,stress_memory_start,duration=40 memory=24379MB
+2026-04-13T19:56:13Z,run_win_01,stress_memory_stop,completed
+2026-04-13T19:56:13Z,run_win_01,scenario_stop,resource=memory level=high completed
+2026-04-13T19:56:13Z,run_win_01,cooldown_start,duration=15s
+2026-04-13T19:56:28Z,run_win_01,cooldown_stop,completed
+2026-04-13T19:56:28Z,run_win_01,block_stop,schedule=.\test.csv completed
+2026-04-13T19:58:35Z,run_win_01,block_start,schedule=.\test.csv cpu_cores=12 total_mem_mb=32506 disk_free_mb=50416 disk_medium_mb=256 disk_high_mb=512 disk_very_high_mb=1024
+2026-04-13T19:58:35Z,run_win_01,idle_period_start,duration=10s
+2026-04-13T19:58:45Z,run_win_01,idle_period_stop,completed
+2026-04-13T19:58:45Z,run_win_01,scenario_start,resource=memory level=very_high duration=40s memory_mb=27630 total_mem_mb=32506
+2026-04-13T19:58:46Z,run_win_01,stress_memory_start,duration=40 memory=27630MB
+2026-04-13T19:59:27Z,run_win_01,stress_memory_stop,completed
+2026-04-13T19:59:27Z,run_win_01,scenario_stop,resource=memory level=very_high completed
+2026-04-13T19:59:27Z,run_win_01,cooldown_start,duration=15s
+2026-04-13T19:59:42Z,run_win_01,cooldown_stop,completed
+2026-04-13T19:59:42Z,run_win_01,block_stop,schedule=.\test.csv completed
