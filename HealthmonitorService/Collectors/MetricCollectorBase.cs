@@ -14,6 +14,8 @@ namespace HealthMonitorService.Collectors
         {
             HostContext = hostContext;
             _defaultGateway = GetDefaultGateway();
+
+            Console.WriteLine($"Default gateway: {_defaultGateway}");
         }
 
         protected static bool GetNetworkAvailable()

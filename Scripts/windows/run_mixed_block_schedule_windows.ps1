@@ -28,7 +28,7 @@ $totalMemMb = [int][Math]::Floor((Get-CimInstance Win32_OperatingSystem).TotalVi
 
 $cpuMedium = [Math]::Max([int][Math]::Floor($cpuCores / 2), 1)
 $cpuHigh = [Math]::Max($cpuCores - 1, 1)
-$cpuVeryHigh = $cpuHigh
+$cpuVeryHigh = [Math]::Max($cpuCores, 1)
 
 $memMedium = [int][Math]::Floor($totalMemMb * 0.60)
 $memHigh = [int][Math]::Floor($totalMemMb * 0.75)

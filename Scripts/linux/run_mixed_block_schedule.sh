@@ -44,7 +44,7 @@ CPU_MEDIUM=$(( CPU_CORES / 2 ))
 CPU_HIGH=$(( CPU_CORES - 1 ))
 [ "$CPU_HIGH" -lt 1 ] && CPU_HIGH=1
 
-CPU_VERY_HIGH=$(( CPU_CORES - 1 ))
+CPU_VERY_HIGH=$(( CPU_CORES ))
 [ "$CPU_VERY_HIGH" -lt 1 ] && CPU_VERY_HIGH=1
 
 # ---- Compute memory levels ----

@@ -46,31 +46,15 @@ namespace HealthMonitorService.Services
                 return GetNormalizedLinuxName();
             }
 
-            string architecture = RuntimeInformation.OSArchitecture switch
-            {
-                Architecture.X64 => "x64",
-                Architecture.Arm64 => "arm64",
-                Architecture.X86 => "x86",
-                Architecture.Arm => "arm",
-                _ => "unknown"
-            };
+            string architecture = GetNormalizedArchitecture();
 
             return $"Unknown_{architecture}";
         }
 
         private static string GetNormalizedWindowsName()
         {
-            string architecture = RuntimeInformation.OSArchitecture switch
-            {
-                Architecture.X64 => "x64",
-                Architecture.Arm64 => "arm64",
-                Architecture.X86 => "x86",
-                Architecture.Arm => "arm",
-                _ => "unknown"
-            };
-
+            string architecture = GetNormalizedArchitecture();
             int build = Environment.OSVersion.Version.Build;
-
             string versionLabel = build >= 22000 ? "11" : "10";
 
             return $"Windows_{versionLabel}_{architecture}";
@@ -78,28 +62,24 @@ namespace HealthMonitorService.Services
 
         private static string GetNormalizedLinuxName()
         {
-            string architecture = RuntimeInformation.OSArchitecture switch
-            {
-                Architecture.X64 => "x64",
-                Architecture.Arm64 => "arm64",
-                Architecture.X86 => "x86",
-                Architecture.Arm => "arm",
-                _ => "unknown"
-            };
+            string architecture = GetNormalizedArchitecture();
 
             try
             {
                 var lines = File.ReadAllLines("/etc/os-release");
 
-                string? id = lines.FirstOrDefault(l => l.StartsWith("ID="))?.Split('=')[1].Trim('"');
-                string? version = lines.FirstOrDefault(l => l.StartsWith("VERSION_ID="))?.Split('=')[1].Trim('"');
+                string? id = null;
+                string? version = null;
 
-                string distro = id?.ToLowerInvariant() switch
+                foreach(var line in File.ReadLines("/etc/os-release"))
                 {
-                    "debian" => "Debian",
-                    "ubuntu" => "Ubuntu",
-                    _ => "Linux"
-                };
+                    if (line.StartsWith("ID=")) id = line[3..].Trim('"');
+                    else if (line.StartsWith("VERSION_ID=")) version = line[11..].Trim('"');
+
+                    if (id != null && version != null) break;
+                }
+
+                string distro = CapitalizeAscii(id ?? "Linux");
 
                 return $"{distro}_{version ?? "Unknown"}_{architecture}";
             }
@@ -107,6 +87,27 @@ namespace HealthMonitorService.Services
             {
                 return $"Linux_Unknown_{architecture}";
             }
+        }
+
+        private static string CapitalizeAscii(string value)
+        {
+            if (string.IsNullOrEmpty(value))
+            {
+                return value;
+            }
+
+            return char.ToUpperInvariant(value[0]) + value[1..];
+        }
+
+        private static string GetNormalizedArchitecture(){
+            return RuntimeInformation.OSArchitecture switch
+            {
+                Architecture.X64 => "x64",
+                Architecture.Arm64 => "arm64",
+                Architecture.X86 => "x86",
+                Architecture.Arm => "arm",
+                _ => "unknown"
+            };
         }
     }
 }

@@ -1,0 +1,13 @@
+gap_seconds,cpu_level,mem_level,disk_level,duration_seconds
+600,high,none,none,180
+300,none,high,none,180
+300,high,high,none,240
+300,high,none,high,240
+300,none,high,high,240
+300,very_high,none,none,180
+300,none,very_high,none,180
+300,none,none,very_high,180
+300,very_high,high,none,180
+300,high,none,very_high,180
+300,very_high,high,high,180
+300,very_high,very_high,high,180
