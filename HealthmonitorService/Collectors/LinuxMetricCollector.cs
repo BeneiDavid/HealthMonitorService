@@ -255,35 +255,60 @@ namespace HealthMonitorService.Collectors
                 string[] parts = line.Split(" - ", StringSplitOptions.None);
 
                 if (parts.Length != 2)
-                {
                     continue;
-                }
 
                 string[] mountInfoParts = parts[0].Split(' ', StringSplitOptions.RemoveEmptyEntries);
                 string[] fsParts = parts[1].Split(' ', StringSplitOptions.RemoveEmptyEntries);
 
                 if (mountInfoParts.Length < 5 || fsParts.Length < 2)
-                {
                     continue;
-                }
 
                 string mountPoint = mountInfoParts[4];
                 string source = fsParts[1];
 
                 if (mountPoint != "/")
-                {
                     continue;
-                }
 
                 string deviceName = Path.GetFileName(source);
 
-                if (!string.IsNullOrWhiteSpace(deviceName))
-                {
-                    return deviceName;
-                }
+                if (string.IsNullOrWhiteSpace(deviceName))
+                    continue;
+
+                // ✅ Resolve device mapper names (e.g. sokol → dm-0)
+                string resolvedName = ResolveDeviceMapperName(deviceName);
+
+                return resolvedName;
             }
 
             throw new InvalidOperationException("Could not determine root disk device from /proc/self/mountinfo.");
+        }
+
+        private static string ResolveDeviceMapperName(string deviceName)
+        {
+            // Check if it's a device mapper device via /sys/block/dm-*/dm/name
+            string sysBlockPath = "/sys/block";
+
+            if (!Directory.Exists(sysBlockPath))
+                return deviceName;
+
+            foreach (string blockDevice in Directory.EnumerateDirectories(sysBlockPath))
+            {
+                string dmNameFile = Path.Combine(blockDevice, "dm", "name");
+
+                if (!File.Exists(dmNameFile))
+                    continue;
+
+                string dmName = File.ReadAllText(dmNameFile).Trim();
+
+                if (string.Equals(dmName, deviceName, StringComparison.Ordinal))
+                {
+                    // e.g. /sys/block/dm-0 → return "dm-0"
+                    return Path.GetFileName(blockDevice);
+                }
+            }
+
+            // Not a device mapper device — return as-is (e.g. xvda, sda)
+            return deviceName;
         }
 
         private static int GetProcessCount()
