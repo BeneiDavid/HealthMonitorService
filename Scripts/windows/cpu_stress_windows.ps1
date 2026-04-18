@@ -1,20 +1,25 @@
 param(
-    [string]$TestRunId = "run_001",
+    [string]$TestRunId = 'run_001',
     [int]$Duration = 60,
     [int]$Workers = 2
 )
 
 $ErrorActionPreference = 'Stop'
 $EventsFile = if ($env:EVENTS_FILE) { $env:EVENTS_FILE } else { 'events.csv' }
-$WorkerScript = Join-Path $env:TEMP 'thesis_cpu_worker.ps1'
+$LogEventScript = if ($env:LOG_EVENT_SCRIPT) { $env:LOG_EVENT_SCRIPT } else { Join-Path $PSScriptRoot 'log_event_windows.ps1' }
+$CpuCores = [Environment]::ProcessorCount
+$WorkerScriptPath = Join-Path $env:TEMP 'thesis_cpu_worker.ps1'
 
 function Log-Event {
-    param(
-        [string]$EventType,
-        [string]$Details = ''
-    )
-    $timestamp = (Get-Date).ToUniversalTime().ToString('yyyy-MM-ddTHH:mm:ssZ')
-    Add-Content -Path $EventsFile -Value "$timestamp,$TestRunId,$EventType,$Details"
+    param([string]$EventType, [string]$Details = '')
+    & $LogEventScript $EventsFile $TestRunId $EventType $Details
+}
+
+if ($Workers -lt 1) {
+    throw 'CPU workers must be a positive integer.'
+}
+if ($Workers -gt $CpuCores) {
+    $Workers = $CpuCores
 }
 
 @'
@@ -25,31 +30,40 @@ while ($true) {
         $x += [Math]::Sqrt($i)
     }
 }
-'@ | Set-Content -Path $WorkerScript -Encoding UTF8
+'@ | Set-Content -Path $WorkerScriptPath -Encoding UTF8
 
-$children = @()
+$ChildProcesses = @()
+$Success = $false
+
 try {
-    Log-Event 'stress_cpu_start' "duration=$Duration workers=$Workers"
+    Log-Event 'stress_cpu_start' "duration=$Duration workers=$Workers total_cores=$CpuCores"
 
     for ($i = 0; $i -lt $Workers; $i++) {
-        $proc = Start-Process -FilePath 'powershell.exe' `
-            -ArgumentList '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', $WorkerScript `
+        $ChildProcess = Start-Process -FilePath 'powershell.exe' `
+            -ArgumentList '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', $WorkerScriptPath `
             -PassThru -WindowStyle Hidden
-        $children += $proc
+        $ChildProcesses += $ChildProcess
     }
 
     Start-Sleep -Seconds $Duration
+    $Success = $true
 }
 finally {
-    foreach ($child in $children) {
+    foreach ($ChildProcess in $ChildProcesses) {
         try {
-            if ($null -ne $child -and -not $child.HasExited) {
-                Stop-Process -Id $child.Id -Force -ErrorAction SilentlyContinue
+            if ($null -ne $ChildProcess -and -not $ChildProcess.HasExited) {
+                Stop-Process -Id $ChildProcess.Id -Force -ErrorAction SilentlyContinue
             }
         }
         catch {}
     }
 
-    Remove-Item -Path $WorkerScript -Force -ErrorAction SilentlyContinue
-    Log-Event 'stress_cpu_stop' 'completed'
+    Remove-Item -Path $WorkerScriptPath -Force -ErrorAction SilentlyContinue
+
+    if ($Success) {
+        Log-Event 'stress_cpu_stop' 'status=completed'
+    }
+    else {
+        Log-Event 'stress_cpu_stop' 'status=failed'
+    }
 }

@@ -6,5 +6,5 @@ param(
 )
 
 $ErrorActionPreference = 'Stop'
-$timestamp = (Get-Date).ToUniversalTime().ToString('yyyy-MM-ddTHH:mm:ssZ')
-Add-Content -Path $EventsFile -Value "$timestamp,$TestRunId,$EventType,$Details"
+$Timestamp = (Get-Date).ToUniversalTime().ToString('yyyy-MM-ddTHH:mm:ssZ')
+Add-Content -Path $EventsFile -Value "$Timestamp,$TestRunId,$EventType,$Details"

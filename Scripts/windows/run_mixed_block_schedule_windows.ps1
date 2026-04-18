@@ -9,173 +9,162 @@ $EventsFile = if ($env:EVENTS_FILE) { $env:EVENTS_FILE } else { 'events.csv' }
 $CpuScript = Join-Path $PSScriptRoot 'cpu_stress_windows.ps1'
 $MemScript = Join-Path $PSScriptRoot 'memory_stress_windows.ps1'
 $DiskScript = Join-Path $PSScriptRoot 'disk_io_stress_windows.ps1'
+$LogEventScript = Join-Path $PSScriptRoot 'log_event_windows.ps1'
 $DiskTargetDir = Join-Path $env:TEMP 'thesis_stress'
+
+$CpuCores = [Environment]::ProcessorCount
+$CpuMedium = [Math]::Max([int][Math]::Floor($CpuCores / 2), 1)
+$CpuHigh = [Math]::Max($CpuCores - 1, 1)
+$CpuVeryHigh = $CpuCores
+
+New-Item -ItemType Directory -Force -Path $DiskTargetDir | Out-Null
 
 function Log-Event {
     param([string]$EventType, [string]$Details = '')
-    $timestamp = (Get-Date).ToUniversalTime().ToString('yyyy-MM-ddTHH:mm:ssZ')
-    Add-Content -Path $EventsFile -Value "$timestamp,$RunId,$EventType,$Details"
+    & $LogEventScript $EventsFile $RunId $EventType $Details
 }
 
-function Clamp([int]$Value, [int]$Min, [int]$Max) {
-    if ($Value -lt $Min) { return $Min }
-    if ($Value -gt $Max) { return $Max }
-    return $Value
-}
-
-$cpuCores = [Environment]::ProcessorCount
-$totalMemMb = [int][Math]::Floor((Get-CimInstance Win32_OperatingSystem).TotalVisibleMemorySize / 1024)
-
-$cpuMedium = [Math]::Max([int][Math]::Floor($cpuCores / 2), 1)
-$cpuHigh = [Math]::Max($cpuCores - 1, 1)
-$cpuVeryHigh = [Math]::Max($cpuCores, 1)
-
-$memMedium = [int][Math]::Floor($totalMemMb * 0.60)
-$memHigh = [int][Math]::Floor($totalMemMb * 0.75)
-$memVeryHigh = [int][Math]::Floor($totalMemMb * 0.85)
-
-New-Item -ItemType Directory -Force -Path $DiskTargetDir | Out-Null
-$driveName = ([System.IO.Path]::GetPathRoot($DiskTargetDir)).TrimEnd('\')
-$disk = Get-CimInstance Win32_LogicalDisk -Filter "DeviceID='${driveName}'"
-$diskFreeMb = [int][Math]::Floor($disk.FreeSpace / 1MB)
-
-$diskMedium = Clamp ([int][Math]::Floor($diskFreeMb * 0.02)) 64 256
-$diskHigh = Clamp ([int][Math]::Floor($diskFreeMb * 0.05)) 128 512
-$diskVeryHigh = Clamp ([int][Math]::Floor($diskFreeMb * 0.10)) 256 1024
-
-function Resolve-CpuWorkers([string]$Level) {
-    switch ($Level) {
-        'medium' { return $cpuMedium }
-        'high' { return $cpuHigh }
-        'very_high' { return $cpuVeryHigh }
-        'none' { return $null }
-        default { throw "Unknown CPU level: $Level" }
+function Validate-LevelOrNone([string]$LevelName, [string]$LevelValue) {
+    switch ($LevelValue) {
+        'none' {}
+        'medium' {}
+        'high' {}
+        'very_high' {}
+        default { throw "Unknown $LevelName level: $LevelValue. Use none, medium, high, or very_high." }
     }
 }
 
-function Resolve-MemMb([string]$Level) {
-    switch ($Level) {
-        'medium' { return $memMedium }
-        'high' { return $memHigh }
-        'very_high' { return $memVeryHigh }
+function Resolve-CpuWorkers([string]$CpuLevel) {
+    switch ($CpuLevel) {
+        'medium' { return $CpuMedium }
+        'high' { return $CpuHigh }
+        'very_high' { return $CpuVeryHigh }
         'none' { return $null }
-        default { throw "Unknown memory level: $Level" }
-    }
-}
-
-function Resolve-DiskMb([string]$Level) {
-    switch ($Level) {
-        'medium' { return $diskMedium }
-        'high' { return $diskHigh }
-        'very_high' { return $diskVeryHigh }
-        'none' { return $null }
-        default { throw "Unknown disk level: $Level" }
+        default { throw "Unknown CPU level: $CpuLevel. Use none, medium, high, or very_high." }
     }
 }
 
 function Start-Stressor([string]$ScriptPath, [object[]]$ArgumentList) {
-    $quotedScript = '"' + $ScriptPath + '"'
-    $quotedArgs = @(
-        '-NoProfile',
-        '-ExecutionPolicy', 'Bypass',
-        '-File', $quotedScript
-    ) + ($ArgumentList | ForEach-Object {
-        $s = [string]$_
-        if ($s -match '\s') { '"' + $s + '"' } else { $s }
-    })
+    $QuotedScriptPath = '"' + $ScriptPath + '"'
+    $QuotedArgumentList = @()
 
-    return Start-Process -FilePath 'powershell.exe' `
-        -ArgumentList $quotedArgs `
-        -PassThru `
-        -WindowStyle Hidden
+    foreach ($ArgumentValue in $ArgumentList) {
+        if ($null -ne $ArgumentValue) {
+            $QuotedArgumentList += '"' + ([string]$ArgumentValue).Replace('"', '\"') + '"'
+        }
+    }
+
+    $ProcessArguments = @('-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', $QuotedScriptPath) + $QuotedArgumentList
+    Start-Process -FilePath 'powershell.exe' -ArgumentList $ProcessArguments -PassThru -WindowStyle Hidden
 }
 
-$children = @()
+$script:ChildProcesses = @()
 
 function Cleanup-Children {
-    foreach ($child in $children) {
+    foreach ($ChildProcess in $script:ChildProcesses) {
         try {
-            if ($null -ne $child -and -not $child.HasExited) {
-                Stop-Process -Id $child.Id -Force -ErrorAction SilentlyContinue
+            if ($null -ne $ChildProcess -and -not $ChildProcess.HasExited) {
+                Stop-Process -Id $ChildProcess.Id -Force -ErrorAction SilentlyContinue
             }
         }
         catch {}
     }
-    $script:children = @()
+    $script:ChildProcesses = @()
 }
 
 trap {
     Cleanup-Children
-    throw
+    Write-Host "Scheduler error at line $($_.InvocationInfo.ScriptLineNumber): $($_.Exception.Message)"
+    throw $_
 }
 
 function Run-Mixed([string]$CpuLevel, [string]$MemLevel, [string]$DiskLevel, [int]$Duration) {
-    $details = "duration=${Duration}s"
-    $script:children = @()
-    $started = $false
+    Validate-LevelOrNone 'cpu' $CpuLevel
+    Validate-LevelOrNone 'memory' $MemLevel
+    Validate-LevelOrNone 'disk' $DiskLevel
+
+    $script:ChildProcesses = @()
+    $Details = "duration=${Duration}s"
+    $StartedOther = $false
+    $MemoryDuration = $Duration
+    $CpuWorkers = $null
 
     if ($CpuLevel -ne 'none') {
-        $workers = Resolve-CpuWorkers $CpuLevel
-        $script:children += Start-Stressor $CpuScript @($RunId, $Duration, $workers)
-        $details += " cpu=$CpuLevel workers=$workers total_cores=$cpuCores"
-        $started = $true
-    }
-
-    if ($MemLevel -ne 'none') {
-        $mb = Resolve-MemMb $MemLevel
-        $script:children += Start-Stressor $MemScript @($RunId, $Duration, $mb)
-        $details += " memory=$MemLevel memory_mb=$mb total_mem_mb=$totalMemMb"
-        $started = $true
+        $CpuWorkers = Resolve-CpuWorkers $CpuLevel
+        $Details += " cpu=$CpuLevel workers=$CpuWorkers total_cores=$CpuCores"
     }
 
     if ($DiskLevel -ne 'none') {
-        $fileMb = Resolve-DiskMb $DiskLevel
-        $script:children += Start-Stressor $DiskScript @($RunId, $Duration, $DiskTargetDir, $fileMb)
-        $details += " disk=$DiskLevel file_mb=$fileMb disk_free_mb=$diskFreeMb"
-        $started = $true
+        $Details += " disk=$DiskLevel target_dir=$DiskTargetDir"
     }
 
-    if (-not $started) {
+    if ($MemLevel -ne 'none') {
+        if ($CpuLevel -ne 'none' -or $DiskLevel -ne 'none') {
+            if ($Duration -le 5) {
+                throw 'Duration must be greater than 5 seconds when memory is delayed after CPU/disk.'
+            }
+            $MemoryDuration = $Duration - 5
+        }
+        $Details += " memory=$MemLevel memory_duration=${MemoryDuration}s"
+    }
+
+    if ($CpuLevel -eq 'none' -and $MemLevel -eq 'none' -and $DiskLevel -eq 'none') {
         throw 'Mixed scenario must enable at least one resource'
     }
 
-    Log-Event 'scenario_start' $details
+    Log-Event 'scenario_start' $Details
 
-    $failed = $false
-    foreach ($child in $script:children) {
-        $null = $child.WaitForExit()
-        if ($child.ExitCode -ne 0) {
-            $failed = $true
+    if ($CpuLevel -ne 'none') {
+        $script:ChildProcesses += Start-Stressor $CpuScript @($RunId, $Duration, $CpuWorkers)
+        $StartedOther = $true
+    }
+
+    if ($DiskLevel -ne 'none') {
+        $script:ChildProcesses += Start-Stressor $DiskScript @($RunId, $Duration, $DiskTargetDir, $DiskLevel)
+        $StartedOther = $true
+    }
+
+    if ($MemLevel -ne 'none') {
+        if ($StartedOther) {
+            Start-Sleep -Seconds 5
+        }
+        $script:ChildProcesses += Start-Stressor $MemScript @($RunId, $MemoryDuration, $MemLevel)
+    }
+
+    $Failed = $false
+    foreach ($ChildProcess in $script:ChildProcesses) {
+        $null = $ChildProcess.WaitForExit()
+        if ($ChildProcess.ExitCode -ne 0) {
+            $Failed = $true
+            Write-Warning "Child process failed: PID=$($ChildProcess.Id) ExitCode=$($ChildProcess.ExitCode)"
         }
     }
-    $script:children = @()
+    $script:ChildProcesses = @()
 
-    if ($failed) {
-        Log-Event 'scenario_stop' 'status=failed'
+    if ($Failed) {
+        Log-Event 'scenario_stop' "status=failed duration=${Duration}s cpu=$CpuLevel memory=$MemLevel disk=$DiskLevel"
         throw 'One or more mixed stress processes failed'
     }
 
-    Log-Event 'scenario_stop' 'status=completed'
+    Log-Event 'scenario_stop' "status=completed duration=${Duration}s cpu=$CpuLevel memory=$MemLevel disk=$DiskLevel"
 }
 
-Log-Event 'mixed_block_start' "schedule=$ScheduleFile cpu_cores=$cpuCores total_mem_mb=$totalMemMb disk_free_mb=$diskFreeMb disk_medium_mb=$diskMedium disk_high_mb=$diskHigh disk_very_high_mb=$diskVeryHigh"
+Log-Event 'mixed_block_start' "schedule=$ScheduleFile cpu_cores=$CpuCores cpu_medium_workers=$CpuMedium cpu_high_workers=$CpuHigh cpu_very_high_workers=$CpuVeryHigh disk_target_dir=$DiskTargetDir"
 
-Import-Csv -Path $ScheduleFile | ForEach-Object {
-    $gap = [int]$_.gap_seconds
-    $cpuLevel  = $_.cpu_level.Trim()
-    $memLevel  = $_.mem_level.Trim()
-    $diskLevel = $_.disk_level.Trim()
-    $duration = [int]$_.duration_seconds
+$ScheduleRows = Import-Csv -Path $ScheduleFile -Delimiter ','
 
-    Log-Event 'idle_period_start' "duration=${gap}s"
-    Start-Sleep -Seconds $gap
-    Log-Event 'idle_period_stop' 'completed'
+foreach ($ScheduleRow in $ScheduleRows) {
+    if ([string]::IsNullOrWhiteSpace($ScheduleRow.gap_seconds)) { continue }
 
-    Run-Mixed $cpuLevel $memLevel $diskLevel $duration
+    $GapSeconds = [int]$ScheduleRow.gap_seconds.Trim()
+    $CpuLevel = $ScheduleRow.cpu_level.Trim()
+    $MemLevel = $ScheduleRow.mem_level.Trim()
+    $DiskLevel = $ScheduleRow.disk_level.Trim()
+    $DurationSeconds = [int]$ScheduleRow.duration_seconds.Trim()
 
-    Log-Event 'cooldown_start' "duration=${CooldownSeconds}s"
+    Start-Sleep -Seconds $GapSeconds
+    Run-Mixed $CpuLevel $MemLevel $DiskLevel $DurationSeconds
     Start-Sleep -Seconds $CooldownSeconds
-    Log-Event 'cooldown_stop' 'completed'
 }
 
 Log-Event 'mixed_block_stop' "schedule=$ScheduleFile completed"
