@@ -27,9 +27,7 @@ namespace HealthMonitorService.Prediction.MachineLearning
             RiskLevel level = MapLabelToRiskLevel(output.PredictedLabel);
             double confidence = GetPredictionConfidence(output.Score, level);
             
-            string scoreText = output.Score is null
-                ? "no scores"
-                : string.Join(", ", output.Score.Select(s => s.ToString("F4")));
+            string scoreText = output.Score is null ? "no scores" : string.Join(", ", output.Score.Select(s => s.ToString("F4")));
 
             MetricWindowStats stats = MetricWindowStats.From(window);
             string explanation = RiskSignalAnalyser.BuildExplanation(stats);

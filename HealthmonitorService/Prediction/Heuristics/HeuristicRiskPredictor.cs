@@ -4,10 +4,7 @@ namespace HealthMonitorService.Prediction.Heuristics
 {
     public class HeuristicRiskPredictor : IRiskPredictor
     {
-        private readonly record struct RiskRule(
-            string Reason,
-            int Score,
-            bool IsTriggered);
+        private readonly record struct RiskRule(string Reason, int Score, bool IsTriggered);
 
         private const string SourceName = "Heuristic";
         private const int ElevatedRiskScore = 3;
