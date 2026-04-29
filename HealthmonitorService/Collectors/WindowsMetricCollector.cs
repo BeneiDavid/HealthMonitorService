@@ -40,8 +40,7 @@ namespace HealthMonitorService.Collectors
 
         private static ulong GetTotalPhysicalMemoryBytes()
         {
-            using var searcher = new ManagementObjectSearcher(
-                "SELECT TotalPhysicalMemory FROM Win32_ComputerSystem");
+            using var searcher = new ManagementObjectSearcher("SELECT TotalPhysicalMemory FROM Win32_ComputerSystem");
 
             foreach (ManagementObject obj in searcher.Get().Cast<ManagementObject>())
             {
@@ -56,33 +55,21 @@ namespace HealthMonitorService.Collectors
             double cpuUsagePercent = Math.Round(_cpuCounter.NextValue(), 2);
             int cpuQueueLength = Convert.ToInt32(Math.Round(_cpuQueueLengthCounter.NextValue(), 0));
             int processCount = Convert.ToInt32(Math.Round(_processCountCounter.NextValue(), 0));
-
             double availableMemoryBytes = _availableMemoryCounter.NextValue();
-
-            double memoryUsagePercent = _totalPhysicalMemoryBytes > 0
-                ? Math.Round((_totalPhysicalMemoryBytes - availableMemoryBytes) / _totalPhysicalMemoryBytes * 100.0, 2)
-                : -1;
-
+            double memoryUsagePercent = _totalPhysicalMemoryBytes > 0 ? Math.Round((_totalPhysicalMemoryBytes - availableMemoryBytes) / _totalPhysicalMemoryBytes * 100.0, 2) : -1;
             double secondaryMemoryUsagePercent = Math.Round(_pagingFileUsageCounter.NextValue(), 2);
-
             var systemDrive = new DriveInfo(Path.GetPathRoot(Environment.SystemDirectory)!);
-
             double diskUsagePercent = -1;
 
             if (systemDrive.IsReady && systemDrive.TotalSize > 0)
             {
-                diskUsagePercent = Math.Round(
-                    (double)(systemDrive.TotalSize - systemDrive.AvailableFreeSpace) / systemDrive.TotalSize * 100.0,
-                    2);
+                diskUsagePercent = Math.Round((double)(systemDrive.TotalSize - systemDrive.AvailableFreeSpace) / systemDrive.TotalSize * 100.0, 2);
             }
 
             double diskReadLatencyMs = Math.Round(_diskReadLatencyCounter.NextValue() * 1000.0, 2);
             double diskWriteLatencyMs = Math.Round(_diskWriteLatencyCounter.NextValue() * 1000.0, 2);
-
             double diskLatencyMs = Math.Round((diskReadLatencyMs + diskWriteLatencyMs) / 2.0, 2);
-
             bool networkAvailable = GetNetworkAvailable();
-
             double packetLossPercent = await GetPacketLossPercentAsync(cancellationToken);
 
             MetricSample baseSample = CreateBaseSample();
@@ -101,7 +88,6 @@ namespace HealthMonitorService.Collectors
                 NetworkAvailable = networkAvailable,
                 PacketLossPercent = packetLossPercent,
             };
-           
         }
 
         public void Dispose()

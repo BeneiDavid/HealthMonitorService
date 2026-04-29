@@ -6,11 +6,18 @@ namespace HealthMonitorService.Services
     public class CsvWriter(string filePath)
     {
         private readonly string _filePath = filePath;
-        private const string Header ="timestamp;monitoring_starttime;operating_system;device_ip;machine_name;cpu_usage_percent;cpu_queue_length;load_per_core;memory_usage_percent;secondary_memory_usage_percent;io_wait_percent;disk_usage_percent;disk_latency_ms;process_count;network_available;packet_loss_percent;failure";
+        private const string Header ="timestamp;monitoring_starttime;operating_system;device_ip;machine_name;" +
+                                    "cpu_usage_percent;cpu_queue_length;load_per_core;memory_usage_percent;secondary_memory_usage_percent;" +
+                                    "io_wait_percent;disk_usage_percent;disk_latency_ms;process_count;network_available;packet_loss_percent;failure";
 
         public async Task WriteSampleAsync(MetricSample sample)
         {
-            if (!File.Exists(_filePath))
+            var fi = new FileInfo(_filePath);
+            if (!string.IsNullOrEmpty(fi.DirectoryName))
+            {
+                Directory.CreateDirectory(fi.DirectoryName);
+            }
+            if (!fi.Exists || fi.Length == 0)
             {
                 File.WriteAllText(_filePath, Header + Environment.NewLine);
             }

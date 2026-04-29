@@ -7,48 +7,48 @@ namespace HealthMonitorService.Collectors
     [SupportedOSPlatform("linux")]
     public class LinuxMetricCollector(HostContext hostContext) : MetricCollectorBase(hostContext), IMetricCollector
     {
+        private const int MetricUnavailable = -1;
 
         private long? _previousIdleTicks;
         private long? _previousTotalTicks;
         private long? _previousIoWaitTicks;
-
         private long? _previousReadOps;
         private long? _previousWriteOps;
         private long? _previousReadTimeMs;
         private long? _previousWriteTimeMs;
 
-        private readonly record struct CpuMetrics(
-            double CpuUsagePercent,
-            double IoWaitPercent);
+        private readonly record struct CpuMetrics(double CpuUsagePercent, double IoWaitPercent)
+        {
+            public static readonly CpuMetrics Unknown = new(MetricUnavailable, MetricUnavailable);
+        }
 
-        private readonly record struct MemoryMetrics(
-            double MemoryUsagePercent,
-            double SecondaryMemoryUsagePercent);
-        private readonly record struct DiskStats(
-            long ReadOps,
-            long WriteOps,
-            long ReadTimeMs,
-            long WriteTimeMs);
+        private readonly record struct MemoryMetrics(double MemoryUsagePercent, double SecondaryMemoryUsagePercent)
+        {
+            public static readonly MemoryMetrics Unknown = new(MetricUnavailable, MetricUnavailable);
+        }
+
+        private readonly record struct DiskStats(long ReadOps, long WriteOps, long ReadTimeMs, long WriteTimeMs)
+        {
+            public static readonly DiskStats Empty = new(MetricUnavailable, MetricUnavailable, MetricUnavailable, MetricUnavailable);
+        }
 
         public async Task<MetricSample> CollectAsync(CancellationToken cancellationToken = default)
         {
             CpuMetrics cpuMetrics = GetCpuMetrics();
             MemoryMetrics memoryMetrics = GetMemoryMetrics();
-
             double loadPerCore = GetLoadPerCore();
             double diskUsagePercent = GetDiskUsagePercent();
             double diskLatencyMs = GetDiskLatencyMs();
             int processCount = GetProcessCount();
-
             bool networkAvailable = GetNetworkAvailable();
-
             double packetLossPercent = await GetPacketLossPercentAsync(cancellationToken);
+            
             MetricSample baseSample = CreateBaseSample();
 
             return baseSample with
             {
                 CpuUsagePercent = cpuMetrics.CpuUsagePercent,
-                CpuQueueLength = -1, // Windows specific
+                CpuQueueLength = MetricUnavailable, // For Linux we rely on LoadPerCore instead
                 LoadPerCore = loadPerCore,
                 MemoryUsagePercent = memoryMetrics.MemoryUsagePercent,
                 SecondaryMemoryUsagePercent = memoryMetrics.SecondaryMemoryUsagePercent,
@@ -71,7 +71,7 @@ namespace HealthMonitorService.Collectors
                 _previousTotalTicks = totalTicks;
                 _previousIoWaitTicks = ioWaitTicks;
 
-                return new CpuMetrics(-1, -1);
+                return CpuMetrics.Unknown;
             }
 
             long idleDelta = idleTicks - _previousIdleTicks.Value;
@@ -84,7 +84,7 @@ namespace HealthMonitorService.Collectors
 
             if (totalDelta <= 0)
             {
-                return new CpuMetrics(-1, -1);
+                return CpuMetrics.Unknown;
             }
 
             double cpuUsagePercent = (1.0 - (double)idleDelta / totalDelta) * 100.0;
@@ -118,9 +118,7 @@ namespace HealthMonitorService.Collectors
         {
             Dictionary<string, long> memInfo = File.ReadLines("/proc/meminfo")
                 .Select(line => line.Split(':', 2))
-                .ToDictionary(
-                    parts => parts[0].Trim(),
-                    parts => ParseKbValue(parts[1]));
+                .ToDictionary(parts => parts[0].Trim(), parts => ParseKbValue(parts[1]));
 
             long memTotal = memInfo.GetValueOrDefault("MemTotal", 0);
             long memAvailable = memInfo.GetValueOrDefault("MemAvailable", 0);
@@ -129,7 +127,7 @@ namespace HealthMonitorService.Collectors
 
             if (memTotal <= 0)
             {
-                return new MemoryMetrics(-1, -1);
+                return MemoryMetrics.Unknown;
             }
 
             double memoryUsagePercent = (double)(memTotal - memAvailable) / memTotal * 100.0;
@@ -159,7 +157,7 @@ namespace HealthMonitorService.Collectors
 
             if (coreCount <= 0)
             {
-                return -1;
+                return MetricUnavailable;
             }
 
             return Math.Round(loadAverage / coreCount, 2);
@@ -170,26 +168,24 @@ namespace HealthMonitorService.Collectors
             var drive = new DriveInfo("/");
 
             if (!drive.IsReady || drive.TotalSize <= 0)
-                return -1;
+                return MetricUnavailable;
 
             double usage = (double)(drive.TotalSize - drive.AvailableFreeSpace) / drive.TotalSize * 100.0;
             return Math.Round(usage, 2);
         }
+
         private double GetDiskLatencyMs()
         {
             DiskStats current = ReadRootDiskStats();
 
-            if (_previousReadOps is null ||
-                _previousWriteOps is null ||
-                _previousReadTimeMs is null ||
-                _previousWriteTimeMs is null)
+            if (_previousReadOps is null || _previousWriteOps is null || _previousReadTimeMs is null || _previousWriteTimeMs is null)
             {
                 _previousReadOps = current.ReadOps;
                 _previousWriteOps = current.WriteOps;
                 _previousReadTimeMs = current.ReadTimeMs;
                 _previousWriteTimeMs = current.WriteTimeMs;
 
-                return -1;
+                return MetricUnavailable;
             }
 
             long readOpsDelta = current.ReadOps - _previousReadOps.Value;
@@ -245,9 +241,12 @@ namespace HealthMonitorService.Collectors
                     timeWritingMs);
             }
 
-            return new DiskStats(-1, -1, -1, -1);
+            return DiskStats.Empty;
         }
 
+        /// <summary>
+        /// Finds which disk is used for the root filesystem 
+        /// </summary>
         private static string GetRootDeviceName()
         {
             foreach (string line in File.ReadLines("/proc/self/mountinfo"))
@@ -274,7 +273,6 @@ namespace HealthMonitorService.Collectors
                 if (string.IsNullOrWhiteSpace(deviceName))
                     continue;
 
-                // ✅ Resolve device mapper names (e.g. sokol → dm-0)
                 string resolvedName = ResolveDeviceMapperName(deviceName);
 
                 return resolvedName;
@@ -283,9 +281,11 @@ namespace HealthMonitorService.Collectors
             throw new InvalidOperationException("Could not determine root disk device from /proc/self/mountinfo.");
         }
 
+        /// <summary>
+        /// If the root device is a device mapper entry, resolve it to the underlying block device name
+        /// </summary>
         private static string ResolveDeviceMapperName(string deviceName)
         {
-            // Check if it's a device mapper device via /sys/block/dm-*/dm/name
             string sysBlockPath = "/sys/block";
 
             if (!Directory.Exists(sysBlockPath))
@@ -302,19 +302,16 @@ namespace HealthMonitorService.Collectors
 
                 if (string.Equals(dmName, deviceName, StringComparison.Ordinal))
                 {
-                    // e.g. /sys/block/dm-0 → return "dm-0"
                     return Path.GetFileName(blockDevice);
                 }
             }
 
-            // Not a device mapper device — return as-is (e.g. xvda, sda)
             return deviceName;
         }
 
         private static int GetProcessCount()
         {
-            return Directory.EnumerateDirectories("/proc")
-                .Count(path => int.TryParse(Path.GetFileName(path), out _));
+            return Directory.EnumerateDirectories("/proc").Count(path => int.TryParse(Path.GetFileName(path), out _));
         }
     }
 }

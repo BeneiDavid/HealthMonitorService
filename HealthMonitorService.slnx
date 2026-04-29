@@ -1,3 +1,4 @@
 <Solution>
+  <Project Path="HealthMonitorService.Evaluation/HealthMonitorService.Evaluation.csproj" Id="3f680ba0-607e-4167-be38-4bf58bd31f01" />
   <Project Path="HealthMonitorService/HealthMonitorService.csproj" />
 </Solution>

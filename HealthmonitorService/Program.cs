@@ -1,6 +1,10 @@
 using HealthMonitorService.Collectors;
 using HealthMonitorService.Options;
+using HealthMonitorService.Prediction;
+using HealthMonitorService.Prediction.Heuristics;
+using HealthMonitorService.Prediction.MachineLearning;
 using HealthMonitorService.Services;
+using Microsoft.Extensions.Options;
 using Serilog;
 
 var builder = Host.CreateApplicationBuilder(args);
@@ -14,12 +18,9 @@ builder.Services.AddSerilog();
 builder.Services.Configure<MonitoringOptions>(
     builder.Configuration.GetSection("Monitoring"));
 
-// TODO: Add runcontext later
-
-
 var hostContext = HostContextFactory.Create();
-builder.Services.AddSingleton(hostContext);
 
+builder.Services.AddSingleton(hostContext);
 
 if (OperatingSystem.IsWindows())
 {
@@ -35,6 +36,27 @@ else
     return;
 }
 
+builder.Services.AddSingleton<IRiskPredictor>(provider =>
+{
+    MonitoringOptions options = provider.GetRequiredService<IOptions<MonitoringOptions>>().Value;
+
+    if (options.SampleIntervalSeconds <= 0 || options.PredictionWindowSeconds <= 0)
+    {
+        throw new InvalidOperationException("SampleIntervalSeconds and PredictionWindowSeconds must be greater than zero.");
+    }
+
+    return options.PredictionMode switch
+    {
+        PredictionMode.Heuristic => new HeuristicRiskPredictor(),
+
+        PredictionMode.RandomForest => new TrainedMachineLearningModel(RequirePath(options.RandomForestModelPath, "RandomForestModelPath is required"), "Random Forest"),
+
+        PredictionMode.LogisticRegression => new TrainedMachineLearningModel(RequirePath(options.LogisticRegressionModelPath, "LogisticRegressionModelPath is required"), "Logistic Regression"),
+
+        _ => throw new InvalidOperationException("Unknown prediction mode.")
+    };
+});
+
 var dataDirectory = Path.Combine(AppContext.BaseDirectory, "data");
 Directory.CreateDirectory(dataDirectory);
 
@@ -44,3 +66,14 @@ builder.Services.AddHostedService<DataCollectionService>();
 
 var host = builder.Build();
 await host.RunAsync();
+
+
+static string RequirePath(string? path, string message)
+{
+    if (string.IsNullOrWhiteSpace(path))
+    {
+        throw new InvalidOperationException(message);
+    }
+
+    return path;
+}

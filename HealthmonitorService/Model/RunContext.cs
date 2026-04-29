@@ -1,5 +1,6 @@
 ﻿namespace HealthMonitorService.Model
 {
+    // Reserved for future runner integration / recovery actions
     public record class RunContext
     {
         public string? BuildId { get; init; }           // ID of the build being tested

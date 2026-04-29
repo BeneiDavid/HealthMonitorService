@@ -24,8 +24,7 @@ namespace HealthMonitorService.Services
 
             foreach (var ip in host.AddressList)
             {
-                if (ip.AddressFamily == AddressFamily.InterNetwork &&
-                    !IPAddress.IsLoopback(ip))
+                if (ip.AddressFamily == AddressFamily.InterNetwork && !IPAddress.IsLoopback(ip))
                 {
                     return ip.ToString();
                 }
@@ -71,12 +70,21 @@ namespace HealthMonitorService.Services
                 string? id = null;
                 string? version = null;
 
-                foreach(var line in File.ReadLines("/etc/os-release"))
+                foreach (var line in lines)
                 {
-                    if (line.StartsWith("ID=")) id = line[3..].Trim('"');
-                    else if (line.StartsWith("VERSION_ID=")) version = line[11..].Trim('"');
+                    if (line.StartsWith("ID=", StringComparison.Ordinal))
+                    {
+                        id = line[3..].Trim('"');
+                    }
+                    else if (line.StartsWith("VERSION_ID=", StringComparison.Ordinal))
+                    {
+                        version = line[11..].Trim('"');
+                    }
 
-                    if (id != null && version != null) break;
+                    if (id is not null && version is not null)
+                    {
+                        break;
+                    }
                 }
 
                 string distro = CapitalizeAscii(id ?? "Linux");

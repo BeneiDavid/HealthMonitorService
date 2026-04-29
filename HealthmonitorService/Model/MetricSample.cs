@@ -3,6 +3,7 @@
     public readonly record struct MetricSample
     {
         // --- Metadata ---
+        public string RunId { get; init; }    // Unique identifier for the test run, used to group samples from the same run together
         public DateTime Timestamp { get; init; }
         public DateTime MonitoringStartTime { get; init; }   // Starting time of the monitoring
         public string OperatingSystem { get; init; }    // e.g. "Windows_11_x64", "Debian_12_x64", "Debian_12_arm64"
