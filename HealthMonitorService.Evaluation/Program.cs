@@ -33,7 +33,7 @@ if (mode == "heuristic")
     MonitoringOptions options = new()
     {
         SampleIntervalSeconds = 5,
-        PredictionWindowSeconds = 10
+        PredictionWindowSeconds = 60
     };
 
     HeuristicEvaluator evaluator = new();

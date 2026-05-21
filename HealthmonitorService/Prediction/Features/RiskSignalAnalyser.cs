@@ -2,10 +2,7 @@
 {
     public class RiskSignalAnalyser
     {
-        public readonly record struct RiskSignal(
-            string Reason,
-            int Score,
-            bool IsTriggered);
+        public readonly record struct RiskSignal(string Reason, int Score, bool IsTriggered);
 
         public static IReadOnlyList<RiskSignal> GetTriggeredSignals(MetricWindowStats stats)
         {

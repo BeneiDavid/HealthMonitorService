@@ -132,13 +132,9 @@ namespace HealthMonitorService.Collectors
 
             double memoryUsagePercent = (double)(memTotal - memAvailable) / memTotal * 100.0;
 
-            double secondaryMemoryUsagePercent = swapTotal > 0
-                ? (double)(swapTotal - swapFree) / swapTotal * 100.0
-                : 0;
+            double secondaryMemoryUsagePercent = swapTotal > 0 ? (double)(swapTotal - swapFree) / swapTotal * 100.0 : 0;
 
-            return new MemoryMetrics(
-                Math.Round(memoryUsagePercent, 2),
-                Math.Round(secondaryMemoryUsagePercent, 2));
+            return new MemoryMetrics(Math.Round(memoryUsagePercent, 2), Math.Round(secondaryMemoryUsagePercent, 2));
         }
 
         private static long ParseKbValue(string value)
@@ -149,8 +145,7 @@ namespace HealthMonitorService.Collectors
 
         private static double GetLoadPerCore()
         {
-            string firstValue = File.ReadAllText("/proc/loadavg")
-                .Split(' ', StringSplitOptions.RemoveEmptyEntries)[0];
+            string firstValue = File.ReadAllText("/proc/loadavg").Split(' ', StringSplitOptions.RemoveEmptyEntries)[0];
 
             double loadAverage = double.Parse(firstValue, CultureInfo.InvariantCulture);
             int coreCount = Environment.ProcessorCount;
@@ -234,11 +229,7 @@ namespace HealthMonitorService.Collectors
                 long writesCompleted = long.Parse(parts[7], CultureInfo.InvariantCulture);
                 long timeWritingMs = long.Parse(parts[10], CultureInfo.InvariantCulture);
 
-                return new DiskStats(
-                    readsCompleted,
-                    writesCompleted,
-                    timeReadingMs,
-                    timeWritingMs);
+                return new DiskStats(readsCompleted, writesCompleted, timeReadingMs, timeWritingMs);
             }
 
             return DiskStats.Empty;
